@@ -1,0 +1,8 @@
+{
+  "guacamoleVersion": "1.5.3",
+  "name": "CloudEvents Extension",
+  "namespace": "cloudevents",
+  "listeners": [
+    "io.github.guacamole_operator.cloudevents.CloudEventListener"
+  ]
+}
