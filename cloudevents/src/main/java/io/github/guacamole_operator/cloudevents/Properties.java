@@ -1,6 +1,7 @@
 package io.github.guacamole_operator.cloudevents;
 
 import org.apache.guacamole.properties.BooleanGuacamoleProperty;
+import org.apache.guacamole.properties.IntegerGuacamoleProperty;
 import org.apache.guacamole.properties.StringGuacamoleProperty;
 
 public class Properties {
@@ -25,6 +26,23 @@ public class Properties {
         }
     };
 
+    public static final BooleanGuacamoleProperty WEBSOCKETS_ENABLE = new BooleanGuacamoleProperty() {
+        @Override
+        public String getName() {
+            return "cloudevents-websockets-enable";
+        }
+    };
+
+    public static final IntegerGuacamoleProperty WEBSOCKETS_PORT = new IntegerGuacamoleProperty() {
+        @Override
+        public String getName() {
+            return "cloudevents-websockets-port";
+        }
+    };
+
     public static final String DEFAULT_SOURCE = "/cloudevents";
     public static final boolean DEFAULT_TLS_VERIFY = true;
+    public static final boolean DEFAULT_WEBSOCKETS_ENABLE = false;
+    public static final int DEFAULT_WEBSOCKETS_PORT = 8081;
+
 }

@@ -16,6 +16,8 @@ dependencies {
     compileOnly 'jakarta.ws.rs:jakarta.ws.rs-api:2.1.6'
     implementation 'io.cloudevents:cloudevents-http-restful-ws:2.5.0'
     implementation 'io.cloudevents:cloudevents-json-jackson:2.5.0'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.4'
+
 }
 
 group = 'io.github.guacamole_operator'
@@ -26,6 +28,7 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 shadowJar {
   dependencies {
     exclude(dependency('jakarta.ws.rs:jakarta.ws.rs-api:.*'))
+    exclude(dependency('org.slf4j:.*:.*'))
   }
 }
 
