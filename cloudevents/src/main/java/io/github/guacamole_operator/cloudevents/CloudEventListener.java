@@ -24,39 +24,63 @@ import io.cloudevents.CloudEvent;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.core.data.PojoCloudEventData;
+import io.cloudevents.core.format.EventFormat;
+import io.cloudevents.core.provider.EventFormatProvider;
+import io.cloudevents.jackson.JsonFormat;
 
 /**
  * A Listener implementation intended to demonstrate basic use
  * of Guacamole's listener extension API.
  */
 public class CloudEventListener implements Listener {
+    private WebSocketServerImpl websocket;
 
     private static final Logger logger = LoggerFactory.getLogger(CloudEventListener.class);
     private Client client;
-    private URI endpoint;
     private URI source;
+    private URI endpoint = null;
+    private final CloudEventSender sender = new CloudEventSender();
+    private Boolean websocketEnabled = false;
 
     public CloudEventListener() throws GuacamoleException {
         // Get plugin configuration.
         Environment environment = LocalEnvironment.getInstance();
 
-        endpoint = URI.create(environment.getRequiredProperty(Properties.ENDPOINT));
+        String endpointRaw = environment.getProperty(Properties.ENDPOINT);
         source = URI.create(environment.getProperty(Properties.SOURCE, Properties.DEFAULT_SOURCE));
         boolean tlsVerify = environment.getProperty(Properties.TLS_VERIFY, Properties.DEFAULT_TLS_VERIFY);
+        websocketEnabled = environment.getProperty(Properties.WEBSOCKETS_ENABLE,
+                Properties.DEFAULT_WEBSOCKETS_ENABLE);
+        int websocketPort = environment.getProperty(Properties.WEBSOCKETS_PORT, Properties.DEFAULT_WEBSOCKETS_PORT);
 
-        // Build HTTP client.
-        client = ClientBuilder.newClient();
+        if (endpointRaw != null) {
+            endpoint = URI.create(endpointRaw);
 
-        if (!tlsVerify) {
-            HostnameVerifier allHostsValid = new HostnameVerifier() {
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            };
+            // Build HTTP client.
+            client = ClientBuilder.newClient();
 
-            client = ClientBuilder.newBuilder().hostnameVerifier(allHostsValid).build();
-            logger.info("HTTP client for CloudEvents configured with disabled hostname verification!");
+            if (!tlsVerify) {
+                HostnameVerifier allHostsValid = new HostnameVerifier() {
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                };
+
+                client = ClientBuilder.newBuilder().hostnameVerifier(allHostsValid).build();
+                logger.info("HTTP client for CloudEvents configured with disabled hostname verification!");
+            }
         }
+
+        if (endpoint == null && !websocketEnabled) {
+            throw new GuacamoleException("Either endpoint or websockets have to be configured!");
+        }
+
+        if (websocketEnabled) {
+            logger.info("Starting Websocket server.");
+            websocket = new WebSocketServerImpl(websocketPort);
+            websocket.start();
+        }
+
     }
 
     @Override
@@ -79,12 +103,31 @@ public class CloudEventListener implements Listener {
                     .withData(MediaType.APPLICATION_JSON, data)
                     .build();
 
-            final WebTarget target = client.target(this.endpoint);
-
-            final CloudEventSender sender = new CloudEventSender();
-
             try {
-                sender.sendEventAsStructured(target, ce);
+                if (endpoint != null) {
+                    final WebTarget target = client.target(this.endpoint);
+                    sender.sendEventAsStructured(target, ce);
+                }
+
+                if (websocketEnabled) {
+                    EventFormat format = EventFormatProvider
+                            .getInstance()
+                            .resolveFormat(JsonFormat.CONTENT_TYPE);
+
+                    // TODO: Check why automatic JSON format registration is not
+                    // working. This workaround should not be necessary.
+                    if (format == null) {
+                        format = new JsonFormat().withForceNonJsonDataToString();
+                        EventFormatProvider.getInstance().registerFormat(format);
+                    }
+
+                    byte[] serialized = EventFormatProvider
+                            .getInstance()
+                            .resolveFormat(JsonFormat.CONTENT_TYPE)
+                            .serialize(ce);
+
+                    websocket.broadcast(serialized);
+                }
             } catch (Exception ex) {
                 logger.error("Could not send CloudEvent!", ex);
             }
