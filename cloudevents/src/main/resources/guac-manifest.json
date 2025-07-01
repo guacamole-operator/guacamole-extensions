@@ -1,5 +1,5 @@
 {
-  "guacamoleVersion": "1.5.3",
+  "guacamoleVersion": "1.6.0",
   "name": "CloudEvents Extension",
   "namespace": "cloudevents",
   "listeners": [

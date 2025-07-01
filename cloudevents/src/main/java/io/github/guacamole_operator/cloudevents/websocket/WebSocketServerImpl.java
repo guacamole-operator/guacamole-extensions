@@ -1,4 +1,4 @@
-package io.github.guacamole_operator.cloudevents;
+package io.github.guacamole_operator.cloudevents.websocket;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -19,14 +19,20 @@ public class WebSocketServerImpl extends WebSocketServer {
     }
 
     @Override
+    public void onStart() {
+        logger.info("WebSocket server started on :{}.", this.port);
+    }
+
+    @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         logger.info("New WebSocket connection to {}.", conn.getRemoteSocketAddress());
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        logger.info("WebSocket connection closed for {} with exit code {}. Additional info: {}.",
-                conn.getRemoteSocketAddress(), code, reason);
+        logger.info("WebSocket connection closed for {} with exit code {}." +
+                "Additional info: {}. By remote: {}.",
+                conn.getRemoteSocketAddress(), code, reason, remote);
     }
 
     @Override
@@ -41,11 +47,6 @@ public class WebSocketServerImpl extends WebSocketServer {
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        logger.error("an error occurred on connection {}.", conn.getRemoteSocketAddress(), ex);
-    }
-
-    @Override
-    public void onStart() {
-        logger.info("WebSocket server started on :{}.", this.port);
+        logger.error("An error occurred on connection {}.", conn.getRemoteSocketAddress(), ex);
     }
 }
