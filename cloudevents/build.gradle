@@ -14,9 +14,10 @@ dependencies {
     compileOnly('org.apache.guacamole:guacamole-ext:1.6.0')
     compileOnly('org.slf4j:slf4j-api:2.0.17')
     compileOnly('jakarta.ws.rs:jakarta.ws.rs-api:2.1.6')
-    implementation 'io.cloudevents:cloudevents-http-restful-ws:4.0.1'
-    implementation 'io.cloudevents:cloudevents-json-jackson:4.0.1'
-    implementation 'org.java-websocket:Java-WebSocket:1.6.0'
+    compileOnly('com.google.inject:guice:5.1.0')
+    implementation('io.cloudevents:cloudevents-http-restful-ws:4.0.1')
+    implementation('io.cloudevents:cloudevents-json-jackson:4.0.1')
+    implementation('org.java-websocket:Java-WebSocket:1.6.0')
 }
 
 shadowJar {
