@@ -21,7 +21,7 @@ public class Properties {
         }
     };
 
-    public static final IntegerGuacamoleProperty WEBSOCKETS_PORT = new IntegerGuacamoleProperty() {
+    public static final IntegerGuacamoleProperty WEBSOCKET_PORT = new IntegerGuacamoleProperty() {
         @Override
         public String getName() {
             return "cloudevents-websocket-port";
@@ -34,6 +34,6 @@ public class Properties {
     }
 
     public static final Integer getWebSocketPort() throws GuacamoleException {
-        return environment.getProperty(Properties.WEBSOCKETS_PORT, 8081);
+        return environment.getProperty(Properties.WEBSOCKET_PORT, 8081);
     }
 }
