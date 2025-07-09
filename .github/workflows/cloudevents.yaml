@@ -8,6 +8,12 @@ on:
     tags:
       - "cloudevents/v*"
 
+env:
+  CLOUDEVENTS_IMAGE_NAME: cloudevents
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -49,3 +55,26 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
+
+      - name: Build image including extension's .jar
+        uses: redhat-actions/buildah-build@v2
+        id: build
+        with:
+          image: ${{ env.CLOUDEVENTS_IMAGE_NAME }}
+          tags: ${{ steps.vars.outputs.version }}
+          context: ./cloudevents/build/libs
+          containerfiles: |
+            ./cloudevents/Containerfile
+
+      - name: Push image to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          image: ${{ steps.build.outputs.image }}
+          tags: ${{ steps.build.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      - name: Print push output
+        run: echo "${{ toJSON(steps.push.outputs) }}"
